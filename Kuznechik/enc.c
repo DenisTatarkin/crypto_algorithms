@@ -23,13 +23,19 @@ struct key_round{
     char key[key_round_length];
 };
 
-void expand_keys(struct key_round *round_keys[], char *key[]);
-void X(struct key_round key, char *block[]);
-void S(char *block[]);
-void L(char *block[]);
+void expand_keys(struct key_round round_keys[], char key[]);
+char* F(char c[], char key1[], char key2[]);
+void X(char key[], char block[]);
+void S(char block[]);
+void L(char block[]);
+char lambda16(char block[]);
+char* vec(int num);
+
 int main(int argc, char **argv) {
-    FILE *message_file = fopen(argv[1], 'r');
-    FILE *key_file = fopen(argv[2], 'r');
+    //FILE *message_file = fopen(argv[1], 'r');
+    //FILE *key_file = fopen(argv[2], 'r');
+    FILE *message_file = fopen("message.txt", 'r');
+    FILE *key_file = fopen("key.txt", 'r');
     char ch;
     char block[block_length];
     unsigned i = 0;
@@ -45,30 +51,92 @@ int main(int argc, char **argv) {
     }
 
     struct key_round keys[rounds_amount];
-    expand_keys(&keys, key);
+    expand_keys(keys, key);
 
     i = 0;
     while(i < rounds_amount){
-        X(keys[i], &block);
-        S(&block);
-        L(&block);
+        X(keys[i].key, block);
+        S(block);
+        L(block);
     }
 
     return 0;
 }
 
-void expand_keys(struct key_round *round_keys[], char *key[]){
-    //todo
+void expand_keys(struct key_round round_keys[], char key[]){
+    //todo implement only by constants
+    char* c[32];
+    for(int i = 1; i <= 32; i++){
+        c[i-1] = vec(i);
+        L(c[i-1]);
+
+        for(int i = 31; i > 15; i--)
+            round_keys[0].key[31 - i] = key[i];
+        for(int i = 15; i >= 0; i--)
+            round_keys[1].key[15 - i] = key[i];
+
+        for(int i = 1; i <= 4; i++){
+          //  round_keys[2*i + 1] =
+        }
+    }
+
+
 }
 
-void X(struct key_round key, char *block[]) {
-    //todo
+char* F(char c[], char key1[], char key2[]){
+    char new_keys[key_round_length * 2];
+    for(int i = 0; i < key_round_length; i++)
+        new_keys[i] = key2[i];
+    for(int i = key_round_length; i < key_round_length * 2; i++)
+        new_keys[i] = key1[i - key_round_length];
+
 }
 
-void S(char *block[]){
-    //todo
+void X(char key[], char block[]) {
+    for(int i = 0; i < block_length; i++)
+        block[i] = block[i] | key[i];
 }
 
-void L(char *block[]){
-    //todo
+void S(char block[]){
+    for(int i = 0; i < block_length; i++)
+        block[i] = Pi[block[i]];
+}
+
+void L(char block[]){
+    char lambda;
+    for(int i = 0; i < block_length; i++) {
+        for(int j = 0; j < block_length - 1; i++)
+            block[j] = block[j + 1];
+        block[block_length - 1] = lambda16(block);
+    }
+}
+
+char lambda16(char block[]){
+    if(sizeof(block) != 16) // 16 bytes
+        //todo error returning
+
+    return (148*block[15] + 32*block[14] + 133*block[13] + 16*block[12] + 194*block[11] + 192*block[10]
+            + block[9] + 251*block[8] + block[7] + 192*block[6] + 194*block[5] + 16*block[4] + 133*block[3]
+            + 32*block[2] + 148*block[1] + block[0]) % 256;
+}
+
+char* vec(int num){
+    int k = 0;
+    char vector[16];
+    while (num > 1)
+    {
+        vector[k++] = (num % 2) + '0';
+        num = num / 2;
+    }
+    vector[k++] = vector + 17;
+    vector[k] = '\0';
+    char tmp;
+    for (int i = 0; i < k / 2; i++)
+    {
+        tmp = vector[i];
+        vector[i] = vector[k - 1 - i];
+        vector[k - 1 - i] = tmp;
+    }
+
+    return vector;
 }
