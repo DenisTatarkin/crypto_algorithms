@@ -1,3 +1,8 @@
+/*
+ * This file is just copy of enc.c without main function.
+ * This file is provided for unit testing.
+ */
+
 #include <stdio.h>
 
 const unsigned key_length = 32; // 256 bits
@@ -31,38 +36,6 @@ void L(char block[]);
 char lambda16(char block[]);
 char* vec(int num);
 
-int main(int argc, char **argv) {
-    //FILE *message_file = fopen(argv[1], 'r');
-    //FILE *key_file = fopen(argv[2], 'r');
-    FILE *message_file = fopen("message.txt", 'r');
-    FILE *key_file = fopen("key.txt", 'r');
-    char ch;
-    char block[block_length];
-    unsigned i = 0;
-    while((ch = fgetc(message_file)) != EOF){
-        block[i] = ch;
-        i++;
-    }
-    char key[key_length];
-    i = 0;
-    while((ch = fgetc(key_file)) != EOF){
-        key[i] = ch;
-        i++;
-    }
-
-    struct key_round keys[rounds_amount];
-    expand_keys(keys, key);
-
-    i = 0;
-    while(i < rounds_amount){
-        X(keys[i].key, block);
-        S(block);
-        L(block);
-    }
-
-    return 0;
-}
-
 void expand_keys(struct key_round round_keys[], char key[]){
     //todo implement only by constants
     char* c[32];
@@ -70,13 +43,13 @@ void expand_keys(struct key_round round_keys[], char key[]){
         c[i-1] = vec(i);
         L(c[i-1]);
 
-        for(i = 31; i > 15; i--)
+        for(int i = 31; i > 15; i--)
             round_keys[0].key[31 - i] = key[i];
-        for(i = 15; i >= 0; i--)
+        for(int i = 15; i >= 0; i--)
             round_keys[1].key[15 - i] = key[i];
 
-        for(i= 1; i <= 4; i++){
-          //  round_keys[2*i + 1] =
+        for(int i = 1; i <= 4; i++){
+            //  round_keys[2*i + 1] =
         }
     }
 
@@ -115,9 +88,9 @@ char lambda16(char block[]){
     if(sizeof(block) != 16) // 16 bytes
         //todo error returning
 
-    return (148*block[15] + 32*block[14] + 133*block[13] + 16*block[12] + 194*block[11] + 192*block[10]
-            + block[9] + 251*block[8] + block[7] + 192*block[6] + 194*block[5] + 16*block[4] + 133*block[3]
-            + 32*block[2] + 148*block[1] + block[0]) % 256;
+        return (148*block[15] + 32*block[14] + 133*block[13] + 16*block[12] + 194*block[11] + 192*block[10]
+                + block[9] + 251*block[8] + block[7] + 192*block[6] + 194*block[5] + 16*block[4] + 133*block[3]
+                + 32*block[2] + 148*block[1] + block[0]) % 256;
 }
 
 char* vec(int num){
